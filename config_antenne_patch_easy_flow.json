@@ -1,23 +1,16 @@
 {
-  "CIBLE": {
-    "port1": "COM22",
-    "port": "COM5"
-  },
   "MULTIMETRE_COURANT": {
-    "port1": "COM27",
-    "port": "COM3"
+    "port": "COM12"
   },
   "ALIMENTATION": {
     "port1": "COM20",
     "port": "COM9"
   },
   "PATCH": {
-    "port1": "COM24",
-    "port": "COM4"
+    "port": "COM7"
   },
   "TARGET_CAPSYS": {
-    "port1": "COM22",
-    "port": "COM6"
+    "port": "COM11"
   },
   "NOISE_FLOOR_SEUILS": {
     "min_map": [28, 28, 28],
