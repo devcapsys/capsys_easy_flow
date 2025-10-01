@@ -12,47 +12,24 @@
   "TARGET_CAPSYS": {
     "port": "COM11"
   },
-  "NOISE_FLOOR_SEUILS": {
-    "min_map": [28, 28, 28],
-    "max_map": [42, 42, 42]
+  "TEST_SEUILS": {
+    "min_map": [13, 13, 13],
+    "max_map": [21, 23, 23]
   },
-  "TEST_BF": {
-    "min_map": [5, 75, 5, 82, 5, 77],
-    "max_map": [500, 79, 500, 86, 500, 82]
+  "TEST_BF_F1": {
+    "min_map": [114, 55],
+    "max_map": [116, 64]
   },
-  "TEST_IMBALANCE_FREQ_1": {
-    "min_map": [9, 85, 10],
-    "max_map": [1200, 95, 99]
+  "TEST_BF_F2": {
+    "min_map": [230, 58],
+    "max_map": [232, 67]
   },
-  "TEST_IMBALANCE_FREQ_2": {
-    "min_map": [9, 85, 10],
-    "max_map": [1200, 95, 99]
+  "TEST_BF_F3": {
+    "min_map": [414, 53],
+    "max_map": [416, 60]
   },
-  "TEST_IMBALANCE_FREQ_3": {
-    "min_map": [9, 85, 10],
-    "max_map": [1200, 95, 99]
-  },
-  "TEST_TX_CURRENT": {
-    "minimum": 0.068,
-    "maximum": 0.075
-  },
-  "TEST_TX_FREQ_Hz": {
-    "minimum": 24140000000,
-    "maximum": 24160000000,
-    "power_min": 13.5,
-    "power_max": 18,
-    "offset_power": 58.2
-  },
-  "TEST_TX": {
-    "min_map": [24140000, 0.068, 13.5],
-    "max_map": [24160000, 0.075, 18],
-    "cmd": "test tx 4\r",
-    "expected_prefix": "--> ok - Freq : ",
-    "replace_map": {"--> ok - Freq : ": ""},
-    "timeout": 4
-  },
-  "CURRENT_STANDBY_A": {
-    "minimum": 0.0000003,
-    "maximum": 0.000001
+  "MESURE_CONSOMMATION_PATCH": {
+    "minimum": 0.0065,
+    "maximum": 0.008
   }
 }
