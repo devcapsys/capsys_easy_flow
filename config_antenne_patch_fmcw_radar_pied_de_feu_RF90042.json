@@ -1,0 +1,65 @@
+{
+  "CIBLE": {
+    "port1": "COM22",
+    "port": "COM5"
+  },
+  "MULTIMETRE_COURANT": {
+    "port1": "COM27",
+    "port": "COM3"
+  },
+  "ALIMENTATION": {
+    "port1": "COM20",
+    "port": "COM9"
+  },
+  "PATCH": {
+    "port1": "COM24",
+    "port": "COM4"
+  },
+  "TARGET_CAPSYS": {
+    "port1": "COM22",
+    "port": "COM6"
+  },
+  "NOISE_FLOOR_SEUILS": {
+    "min_map": [28, 28, 28],
+    "max_map": [42, 42, 42]
+  },
+  "TEST_BF": {
+    "min_map": [5, 75, 5, 82, 5, 77],
+    "max_map": [500, 79, 500, 86, 500, 82]
+  },
+  "TEST_IMBALANCE_FREQ_1": {
+    "min_map": [9, 85, 10],
+    "max_map": [1200, 95, 99]
+  },
+  "TEST_IMBALANCE_FREQ_2": {
+    "min_map": [9, 85, 10],
+    "max_map": [1200, 95, 99]
+  },
+  "TEST_IMBALANCE_FREQ_3": {
+    "min_map": [9, 85, 10],
+    "max_map": [1200, 95, 99]
+  },
+  "TEST_TX_CURRENT": {
+    "minimum": 0.068,
+    "maximum": 0.075
+  },
+  "TEST_TX_FREQ_Hz": {
+    "minimum": 24140000000,
+    "maximum": 24160000000,
+    "power_min": 13.5,
+    "power_max": 18,
+    "offset_power": 58.2
+  },
+  "TEST_TX": {
+    "min_map": [24140000, 0.068, 13.5],
+    "max_map": [24160000, 0.075, 18],
+    "cmd": "test tx 4\r",
+    "expected_prefix": "--> ok - Freq : ",
+    "replace_map": {"--> ok - Freq : ": ""},
+    "timeout": 4
+  },
+  "CURRENT_STANDBY_A": {
+    "minimum": 0.0000003,
+    "maximum": 0.000001
+  }
+}

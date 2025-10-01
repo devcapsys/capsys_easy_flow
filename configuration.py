@@ -2,10 +2,10 @@ import os
 from typing import Optional
 import atexit
 from modules.capsys_mysql_command.capsys_mysql_command import (GenericDatabaseManager, DatabaseConfig) # Custom
+from modules.capsys_serial_instrument_manager.capsys_serial_instrument_manager import SerialInstrumentManager  # Custom
 from modules.capsys_wrapper_tm_t20iii.capsys_wrapper_tm_t20III import PrinterDC  # Custom
-# from modules.capsys_daq_manager.capsys_daq_manager import DAQManager  # Custom
-# from modules.capsys_mcp23017.capsys_mcp23017 import MCP23017  # Custom
-# from modules.capsys_serial_instrument_manager.ka3005p import alimentation_ka3005p  # Custom
+from modules.capsys_serial_instrument_manager.rsd3305p import alimentation_rsd3305p  # Custom
+from modules.capsys_serial_instrument_manager.mp730424.multimeter_mp730424 import Mp730424Manager  # Custom
 
 # Initialize global variables
 CURRENTH_PATH = os.path.dirname(__file__)
@@ -20,11 +20,44 @@ def get_project_path(*paths):
     """Return the absolute path from the project root, regardless of current working directory."""
     return os.path.abspath(os.path.join(os.path.dirname(__file__), *paths))
 
+class SerialPatchEasyFlow(SerialInstrumentManager):
+    def __init__(self, port=None, baudrate=115200, timeout=0.3, debug=False):
+        SerialInstrumentManager.__init__(self, port, baudrate, timeout, debug)
+        self._debug_log("PatchManager initialized")
+
+    def get_valid(self, sn=None) -> bool:
+        idn = self.send_command("help\r", timeout=1) # Example : help = "Command disp : prod param stat all"
+        if not idn:
+            raise RuntimeError("Failed to get valid IDN response")
+        if idn.startswith("Command disp :\r prod\r param\r"):
+            self._debug_log(f"Device IDN: {idn}")
+            return True
+        else:
+            raise RuntimeError(f"Invalid device IDN: {idn}")
+        
+class SerialTargetCapsys(SerialInstrumentManager):
+    def __init__(self, port=None, baudrate=921600, timeout=0.3, debug=False):
+        SerialInstrumentManager.__init__(self, port, baudrate, timeout, debug)
+        self._debug_log("TargetCapsys initialized")
+
+    def get_valid(self, sn=None) -> bool:
+        self.send_command("\r", timeout=1)
+        idn = self.send_command("help\r", timeout=1) # Example : help = "Command disp : prod param stat all"
+        if not idn:
+            raise RuntimeError("Failed to get valid IDN response")
+        if idn.startswith("Command disp :\r param\r all\r\r"):
+            self._debug_log(f"Device IDN: {idn}")
+            return True
+        else:
+            raise RuntimeError(f"Invalid device IDN: {idn}")
+        
 class ConfigItems:
     """Container for all configuration items used in the test sequence."""
     key_map = {
-        "MULTIMETRE": "multimeter", # Example
-        # Add other keys and their corresponding ConfigItem attributes as needed
+        "MULTIMETRE_COURANT": "multimeter_current",
+        "ALIMENTATION": "alim",
+        "PATCH": "serial_patch_easy_flow",
+        "TARGET_CAPSYS": "serial_target_capsys",
     }
 
     def init_config_items(self, configJson):
@@ -38,8 +71,8 @@ class ConfigItems:
                 self,
                 attr_name,
                 ConfigItems.ConfigItem(                
-                    key=item.get("key"),
-                    # Add other parameters as needed
+                    key=json_key,
+                    port=item.get("port"),
                 )
             )
 
@@ -48,16 +81,18 @@ class ConfigItems:
         def __init__(
             self,
             key = "",
-            # Add other parameters as needed
+            port = "",
         ):
             """Initialize a ConfigItem with optional parameters for test configuration."""
             self.key = key
-            # Add other parameters as needed
+            self.port = port
     
     def __init__(self):
         """Initialize all ConfigItem attributes for different test parameters."""
-        self.multimeter = self.ConfigItem() # Example
-        # Add other ConfigItems as needed
+        self.multimeter_current = self.ConfigItem()
+        self.alim = self.ConfigItem()
+        self.serial_patch_easy_flow = self.ConfigItem()
+        self.serial_target_capsys = self.ConfigItem()
 
 class Arg:
     name = NAME_GUI
@@ -89,13 +124,31 @@ class AppConfig:
         self.device_under_test_id: Optional[int] = None
         self.configItems = ConfigItems()
         self.printer: Optional[PrinterDC] = None
+        self.max_retries = 2
+        self.multimeter_current: Optional[Mp730424Manager] = None
+        self.alim: Optional[alimentation_rsd3305p.Rsd3305PManager] = None
+        self.serial_patch_easy_flow: Optional[SerialPatchEasyFlow] = None
+        self.serial_target_capsys: Optional[SerialTargetCapsys] = None
         atexit.register(self.cleanup) # Register cleanup function to be called on exit
 
     def cleanup(self):
         if self.db:
             self.db.disconnect()
             self.db = None
-        # Add other cleanup actions as needed
+        if self.serial_target_capsys:
+            self.serial_target_capsys.close()
+            self.serial_target_capsys = None
+        if self.multimeter_current:
+            self.multimeter_current.close()
+            self.multimeter_current = None
+        if self.serial_patch_easy_flow:
+            self.serial_patch_easy_flow.close()
+            self.serial_patch_easy_flow = None
+        if self.alim:
+            self.alim.set_output(1, False)
+            self.alim.set_output(2, False)
+            self.alim.close()
+            self.alim = None
         self.device_under_test_id = None
         
     def save_value(self, step_name_id: int, key: str, value: float, unit: str = "", min_value: Optional[float] = None, max_value: Optional[float] = None, valid: int = 0):

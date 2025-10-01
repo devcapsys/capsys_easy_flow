@@ -25,12 +25,23 @@ def run_step(log, config: configuration.AppConfig):
 
     # delete config.json file
     config_file_path = get_project_path("config.json")
-    
     if os.path.exists(config_file_path):
         os.remove(config_file_path)
         log("Fichier config.json supprimé.", "blue")
     else:
         log("Problème lors de la suppression du fichier config.json.", "yellow")
+        success = 2
+
+    if config.serial_target_capsys and config.serial_target_capsys.ser and config.serial_target_capsys.ser.is_open:
+        log(f"Envoie de la commande \"set cible off\" : {config.serial_target_capsys.send_command('set cible off\r', expected_response='ok', timeout=2)}", "blue")
+        config.serial_target_capsys.close()
+        config.serial_target_capsys = None
+        log("Port série de la cible fermé.", "blue")
+
+    if config.serial_patch_easy_flow and config.serial_patch_easy_flow.ser and config.serial_patch_easy_flow.ser.is_open:
+        log(f"Envoie de la commande \"test power off\" : {config.serial_patch_easy_flow.send_command('test power off\r', expected_response='ok', timeout=2)}", "blue")
+    else:
+        log("Le port série du patch n'avait pas été initialisé.", "yellow")
         success = 2
 
     if success == 0:
