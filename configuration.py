@@ -9,8 +9,9 @@ from modules.capsys_serial_instrument_manager.mp730424.multimeter_mp730424 impor
 
 # Initialize global variables
 CURRENTH_PATH = os.path.dirname(__file__)
-NAME_GUI = "Template"
-CONFIG_JSON_NAME = "config_template"
+NAME_GUI = "esay_flow_RF90064"
+CONFIG_JSON_NAME = "config_antenne_patch_easy_flow_RF90064"
+PRODUCT_LIST_ID_DEFAULT = "5"
 VERSION = "V1.0.0"
 HASH_GIT = "DEBUG" # Will be replaced by the Git hash when compiled with command .\build.bat
 AUTHOR = "Thomas GERARDIN"
@@ -36,7 +37,7 @@ class SerialPatchEasyFlow(SerialInstrumentManager):
             raise RuntimeError(f"Invalid device IDN: {idn}")
         
 class SerialTargetCapsys(SerialInstrumentManager):
-    def __init__(self, port=None, baudrate=921600, timeout=0.3, debug=False):
+    def __init__(self, port=None, baudrate=115200, timeout=0.3, debug=False):
         SerialInstrumentManager.__init__(self, port, baudrate, timeout, debug)
         self._debug_log("TargetCapsys initialized")
 
@@ -45,7 +46,7 @@ class SerialTargetCapsys(SerialInstrumentManager):
         idn = self.send_command("help\r", timeout=1) # Example : help = "Command disp : prod param stat all"
         if not idn:
             raise RuntimeError("Failed to get valid IDN response")
-        if idn.startswith("Command disp :\r param\r all\r\r"):
+        if idn.startswith("Command disp :\r prod\r param\r"):
             self._debug_log(f"Device IDN: {idn}")
             return True
         else:
@@ -123,7 +124,7 @@ class Arg:
     of = ""
     article = ""
     indice = ""
-    product_list_id = "1"
+    product_list_id = PRODUCT_LIST_ID_DEFAULT
     user = "root"
     password = "root"
     host = "127.0.0.1"
@@ -192,17 +193,17 @@ class AppConfig:
         fct=None
     ):
         return_msg_fail = []
-        if self.serial_patch_fmcw is None:
+        if self.serial_patch_easy_flow is None:
             return 1, "Erreur : le patch n'est pas initialisé."
         if self.arg.product_list is None:
             return 1, "Erreur : la liste de production n'est pas initialisée."
         log(f"Envoi de la commande : \"{command_to_send}\"", "blue")
-        response = self.serial_patch_fmcw.send_command(command_to_send, timeout=timeout)
+        response = self.serial_patch_easy_flow.send_command(command_to_send, timeout=timeout)
         log(f"Réponse du patch : {response}", "blue")
         response = fct(response) if fct else response
         if not response.startswith(expected_prefix):
-            self.serial_patch_fmcw.close()
-            self.serial_patch_fmcw = None
+            self.serial_patch_easy_flow.close()
+            self.serial_patch_easy_flow = None
             return 1, f"Réponse inattendue du patch \"{command_to_send}\". Le port est fermé."
         # Appliquer les remplacements
         if isinstance(replace_map, dict):

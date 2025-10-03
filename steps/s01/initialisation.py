@@ -88,8 +88,6 @@ def init_database_and_checks(log, config: configuration.AppConfig):
     txt = ""
     for parameter in parameters:
         config_json_name = configuration.CONFIG_JSON_NAME
-        if configuration.HASH_GIT == "DEBUG":
-            config_json_name = "config_debug"
         if parameter.get("name") == config_json_name:
             data_str = parameter.get("file")
             txt = f"Le fichier de config utilisé correspond à la ligne id={parameter.get('id')} de la table parameters"
@@ -184,11 +182,11 @@ def init_multimeter_current(log, config: configuration.AppConfig):
     multimeter = Mp730424Manager(debug=config.arg.show_all_logs)
     if configuration.HASH_GIT == "DEBUG":
         log("En mode DEBUG, il faut bien penser à changer le port.", "cyan")
-        port = "COM27" # PC TGE
+        port = "COM19" # PC TGE
     else:
         port = config.configItems.multimeter_current.port
     try:
-        if multimeter.open_with_usb_name_and_sn(usb_name="USB Serial Port", sn="24140443", start_with_port=port):
+        if multimeter.open_with_usb_name_and_sn(usb_name="USB Serial Port", sn="24140430", start_with_port=port):
             log(multimeter.identification(), "blue")
             multimeter.reset()
             multimeter.conf_curr_dc()
@@ -219,6 +217,7 @@ def init_alimentation(log, config: configuration.AppConfig):
             alim.set_tracking_mode(0)
             alim.set_voltage(2, 12.00)
             alim.set_current(2, 0.5)
+            alim.set_output(2, True)
         else:
             return 1, "Impossible de se connecter à l'alimentation RSD3305P."
     except Exception as e:
@@ -229,46 +228,46 @@ def init_alimentation(log, config: configuration.AppConfig):
 
 def init_patch_easy_flow(log, config: configuration.AppConfig):
     config.serial_patch_easy_flow = None
-    log("Initialisation du patch FMCW...", "cyan")
+    log("Initialisation du patch easy flow...", "cyan")
     # Ensure that the alim is initialized
     if config.alim == None:
         return 1, "L'alimentation n'est pas initialisée ou connectée."
     try:
-        config.alim.set_output(2, False)
-        time.sleep(0.5)
-        config.alim.set_output(2, True)
-        time.sleep(0.1)  # Wait for dut to stabilize
-        voltage2 = config.alim.read_output_voltage(2)
-        current2 = config.alim.read_output_current(2)
-        log(f"Alim CH2 : {voltage2}V, {current2}A", "blue")
+        # config.alim.set_output(2, False)
+        # time.sleep(0.5)
+        # config.alim.set_output(2, True)
+        # time.sleep(0.1)  # Wait for dut to stabilize
+        # voltage2 = config.alim.read_output_voltage(2)
+        # current2 = config.alim.read_output_current(2)
+        # log(f"Alim CH2 : {voltage2}V, {current2}A", "blue")
         config.serial_patch_easy_flow = configuration.SerialPatchEasyFlow()
         if configuration.HASH_GIT == "DEBUG":
             log("En mode DEBUG, il faut bien penser à changer le port.", "cyan")
-            port = "COM2" # PC TGE
+            port = "COM28" # PC TGE
         else:
             port = config.configItems.serial_patch_easy_flow.port
         config.serial_patch_easy_flow.open_with_port(port)
-        log(f"Patch FMCW ouvert sur : {config.serial_patch_easy_flow.port}", "blue")
+        log(f"Patch easy flow ouvert sur : {config.serial_patch_easy_flow.port}", "blue")
     except Exception as e:
-        return 1, f"Problème lors de l'initialisation du patch FMCW : {e}"
-    return 0, "Patch FMCW initialisée avec succès."
+        return 1, f"Problème lors de l'initialisation du patch easy flow : {e}"
+    return 0, "Patch easy flow initialisée avec succès."
 
 def init_target_capsys(log, config: configuration.AppConfig):
     config.serial_target_capsys = None
     log("Initialisation de la target Capsys...", "cyan")
-    # Ensure that the alim is initialized
     config.serial_target_capsys = configuration.SerialTargetCapsys()
     if configuration.HASH_GIT == "DEBUG":
         log("En mode DEBUG, il faut bien penser à changer le port.", "cyan")
-        port = "COM2" # PC TGE
+        port = "COM23" # PC TGE
     else:
         port = config.configItems.serial_target_capsys.port
     config.serial_target_capsys.open_with_port(port)
     log(f"Target Capsys ouvert sur : {config.serial_target_capsys.port}", "blue")
-    config.serial_target_capsys.send_command("set cible off\r", expected_response="ok", timeout=2)
+    config.serial_target_capsys.send_command("set emetteur off\r", expected_response="ok", timeout=2)
     return 0, "Target Capsys initialisée avec succès."
 
 def run_step(log, config: configuration.AppConfig):
+    all_ok = 1
     step_name = os.path.splitext(os.path.basename(__file__))[0]
     return_msg = {"step_name": step_name, "infos": []}
     log(f"show_all_logs = {config.arg.show_all_logs}", "blue")
@@ -278,32 +277,15 @@ def run_step(log, config: configuration.AppConfig):
         return status, return_msg
 
     try:
-        target_capsys_is_open = (config.serial_target_capsys is not None and 
-                                getattr(getattr(config.serial_target_capsys, 'ser', None), 'is_open', False))
-    except (AttributeError, TypeError):
-        target_capsys_is_open = False
-
-    if not target_capsys_is_open:
-        status, message = init_target_capsys(log, config)
-        log(message, "blue")
-        if status != 0:
-            if config.serial_target_capsys is not None:
-                config.serial_target_capsys.close()
-            config.serial_target_capsys = None
-            return_msg["infos"].append(f"{message}")
-            return status, return_msg
-            
-    try:
-        multimeter_is_open = (config.multimeter_current is not None and 
-                             getattr(getattr(config.multimeter_current, 'ser', None), 'is_open', False))
+        multimeter_is_open = (config.multimeter_current is not None and getattr(getattr(config.multimeter_current, 'ser', None), 'is_open', False))
     except (AttributeError, TypeError):
         multimeter_is_open = False
-        
     if not multimeter_is_open:
         status, message = -1, "Erreur inconnue lors de l'initialisation du multimètre courant."
         status, message = init_multimeter_current(log, config)
         log(message, "blue")
         if status != 0:
+            all_ok = 0
             if config.multimeter_current is not None:
                 config.multimeter_current.close()
             config.multimeter_current = None
@@ -313,16 +295,15 @@ def run_step(log, config: configuration.AppConfig):
         log("Le multimètre en courant est déjà initialisé.", "blue")
 
     try:
-        alim_is_open = (config.alim is not None and 
-                       getattr(getattr(config.alim, 'ser', None), 'is_open', False))
+        alim_is_open = (config.alim is not None and getattr(getattr(config.alim, 'ser', None), 'is_open', False))
     except (AttributeError, TypeError):
         alim_is_open = False
-        
     if not alim_is_open:
         status, message = -1, "Erreur inconnue lors de l'initialisation de l'alimentation."
         status, message = init_alimentation(log, config)
         log(message, "blue")
         if status != 0:
+            all_ok = 0
             if config.alim is not None:
                 config.alim.close()
             config.alim = None
@@ -332,15 +313,30 @@ def run_step(log, config: configuration.AppConfig):
         log("L'alimentation est déjà initialisée.", "blue")
 
     try:
-        patch_is_open = (config.serial_patch_easy_flow is not None and 
-                        getattr(getattr(config.serial_patch_easy_flow, 'ser', None), 'is_open', False))
+        target_capsys_is_open = (config.serial_target_capsys is not None and getattr(getattr(config.serial_target_capsys, 'ser', None), 'is_open', False))
+    except (AttributeError, TypeError):
+        target_capsys_is_open = False
+    if not target_capsys_is_open:
+        status, message = -1, "Erreur inconnue lors de l'initialisation de la target Capsys."
+        status, message = init_target_capsys(log, config)
+        log(message, "blue")
+        if status != 0:
+            all_ok = 0
+            if config.serial_target_capsys is not None:
+                config.serial_target_capsys.close()
+            config.serial_target_capsys = None
+            return_msg["infos"].append(f"{message}")
+            return status, return_msg
+
+    try:
+        patch_is_open = (config.serial_patch_easy_flow is not None and getattr(getattr(config.serial_patch_easy_flow, 'ser', None), 'is_open', False))
     except (AttributeError, TypeError):
         patch_is_open = False
-        
     if not patch_is_open:
         status, message = init_patch_easy_flow(log, config)
         log(message, "blue")
         if status != 0:
+            all_ok = 0
             if config.serial_patch_easy_flow is not None:
                 config.serial_patch_easy_flow.close()
             config.serial_patch_easy_flow = None
@@ -349,6 +345,14 @@ def run_step(log, config: configuration.AppConfig):
     else:
         log("Le patch est déjà initialisé.", "blue")
 
+    if all_ok == 0:
+        config.multimeter_current = None
+        config.alim = None
+        config.serial_patch_easy_flow = None
+        config.serial_target_capsys = None
+        return_msg["infos"].append("Erreur lors de l'initialisation des instruments.")
+        return 1, return_msg
+    
     return_msg["infos"].append(f"OK")
     return 0, return_msg
 

@@ -33,7 +33,7 @@ def run_step(log, config: configuration.AppConfig):
         success = 2
 
     if config.serial_target_capsys and config.serial_target_capsys.ser and config.serial_target_capsys.ser.is_open:
-        log(f"Envoie de la commande \"set cible off\" : {config.serial_target_capsys.send_command('set cible off\r', expected_response='ok', timeout=2)}", "blue")
+        log(f"Envoie de la commande \"set emetteur off\" : {config.serial_target_capsys.send_command('set emetteur off\r', expected_response='ok', timeout=2)}", "blue")
         config.serial_target_capsys.close()
         config.serial_target_capsys = None
         log("Port série de la cible fermé.", "blue")
