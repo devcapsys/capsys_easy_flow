@@ -38,11 +38,11 @@ def run_step(log, config: configuration.AppConfig):
         config.serial_target_capsys = None
         log("Port série de la cible fermé.", "blue")
 
-    if config.serial_patch_easy_flow and config.serial_patch_easy_flow.ser and config.serial_patch_easy_flow.ser.is_open:
-        log(f"Envoie de la commande \"test power off\" : {config.serial_patch_easy_flow.send_command('test power off\r', expected_response='ok', timeout=2)}", "blue")
-    else:
-        log("Le port série du patch n'avait pas été initialisé.", "yellow")
-        success = 2
+    # if config.serial_patch_easy_flow and config.serial_patch_easy_flow.ser and config.serial_patch_easy_flow.ser.is_open:
+    #     log(f"Envoie de la commande \"test power off\" : {config.serial_patch_easy_flow.send_command('test power off\r', expected_response='ok', timeout=2)}", "blue")
+    # else:
+    #     log("Le port série du patch n'avait pas été initialisé.", "yellow")
+    #     success = 2
 
     if success == 0:
         return_msg["infos"].append("Nettoyage effectué avec succès.")

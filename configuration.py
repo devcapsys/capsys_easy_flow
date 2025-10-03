@@ -90,8 +90,8 @@ class ConfigItems:
             self,
             key = "",
             port = "",
-            min_map = None,
-            max_map = None,
+            min_map = [],
+            max_map = [],
             minimum = None,
             maximum = None,
         ):
