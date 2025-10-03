@@ -16,17 +16,9 @@
     "min_map": [13, 13, 13],
     "max_map": [21, 23, 23]
   },
-  "TEST_BF_F1": {
-    "min_map": [114, 55],
-    "max_map": [116, 64]
-  },
-  "TEST_BF_F2": {
-    "min_map": [230, 58],
-    "max_map": [232, 67]
-  },
-  "TEST_BF_F3": {
-    "min_map": [414, 53],
-    "max_map": [416, 60]
+  "TEST_BF": {
+    "min_map": [114, 55, 230, 58, 414, 53],
+    "max_map": [116, 64, 232, 67, 416, 60]
   },
   "MESURE_CONSOMMATION_PATCH": {
     "minimum": 0.0065,

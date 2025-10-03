@@ -58,6 +58,9 @@ class ConfigItems:
         "ALIMENTATION": "alim",
         "PATCH": "serial_patch_easy_flow",
         "TARGET_CAPSYS": "serial_target_capsys",
+        "TEST_SEUILS": "test_seuils",
+        "TEST_BF": "bf",
+        "MESURE_CONSOMMATION_PATCH": "consumption",
     }
 
     def init_config_items(self, configJson):
@@ -73,6 +76,10 @@ class ConfigItems:
                 ConfigItems.ConfigItem(                
                     key=json_key,
                     port=item.get("port"),
+                    min_map=item.get("min_map"),
+                    max_map=item.get("max_map"),
+                    minimum=item.get("minimum"),
+                    maximum=item.get("maximum"),
                 )
             )
 
@@ -82,17 +89,28 @@ class ConfigItems:
             self,
             key = "",
             port = "",
+            min_map = None,
+            max_map = None,
+            minimum = None,
+            maximum = None,
         ):
             """Initialize a ConfigItem with optional parameters for test configuration."""
             self.key = key
             self.port = port
-    
+            self.min_map = min_map
+            self.max_map = max_map
+            self.minimum = minimum
+            self.maximum = maximum
+
     def __init__(self):
         """Initialize all ConfigItem attributes for different test parameters."""
         self.multimeter_current = self.ConfigItem()
         self.alim = self.ConfigItem()
         self.serial_patch_easy_flow = self.ConfigItem()
         self.serial_target_capsys = self.ConfigItem()
+        self.test_seuils = self.ConfigItem()
+        self.bf = self.ConfigItem()
+        self.consumption = self.ConfigItem()
 
 class Arg:
     name = NAME_GUI
@@ -158,3 +176,82 @@ class AppConfig:
         id = self.db.create("skvp_float",
                        {"step_name_id": step_name_id, "key": key, "val_float": value, "unit": unit, "min_configured": min_value, "max_configured": max_value, "valid": valid})
         return id
+    
+    def run_meas_on_patch(
+        self,
+        log,
+        step_name_id,
+        min_values,
+        max_values,
+        command_to_send,
+        expected_prefix,
+        save_key_prefix = "",  # type: str | list | dict
+        seuil_unit_map = {},    # type: str | list | dict
+        timeout=4,
+        replace_map={},
+        fct=None
+    ):
+        return_msg_fail = []
+        if self.serial_patch_fmcw is None:
+            return 1, "Erreur : le patch n'est pas initialisé."
+        if self.arg.product_list is None:
+            return 1, "Erreur : la liste de production n'est pas initialisée."
+        log(f"Envoi de la commande : \"{command_to_send}\"", "blue")
+        response = self.serial_patch_fmcw.send_command(command_to_send, timeout=timeout)
+        log(f"Réponse du patch : {response}", "blue")
+        response = fct(response) if fct else response
+        if not response.startswith(expected_prefix):
+            self.serial_patch_fmcw.close()
+            self.serial_patch_fmcw = None
+            return 1, f"Réponse inattendue du patch \"{command_to_send}\". Le port est fermé."
+        # Appliquer les remplacements
+        if isinstance(replace_map, dict):
+            for k, v in replace_map.items():
+                response = response.replace(k, v)
+        elif isinstance(replace_map, list):
+            for k, v in replace_map:
+                response = response.replace(k, v)
+        response = response.strip()
+        values = []
+        valid = 1
+        expected_values_count = len(min_values)
+        for i, val in enumerate(response.split(" ")):
+            if val.strip():
+                try:
+                    val_float = float(val.strip())
+                except ValueError:
+                    log(f"{i+1} : valeur non numérique '{val.strip()}'", "red")
+                    return_msg_fail.append(f"{i+1} : valeur non numérique '{val.strip()}'")
+                    valid = 0
+                    break
+                if i < expected_values_count:
+                    if min_values[i] <= val_float <= max_values[i]:
+                        log(f"{i+1} : {val_float} (OK ; min={min_values[i]} ; max={max_values[i]})", "blue")
+                        values.append(val_float)
+                    else:
+                        log(f"{i+1} : {val_float} (NOK ; min={min_values[i]} ; max={max_values[i]})", "red")
+                        values.append(val_float)
+                        return_msg_fail.append(f"{i+1} : {val_float} (NOK ; min={min_values[i]} ; max={max_values[i]})")
+                        valid = 0
+        
+        # Save all valid values, even on error
+        if save_key_prefix != "":
+            for i, val_float in enumerate(values):
+                # If save_key_prefix is a dict/map, use mapping
+                if isinstance(save_key_prefix, dict):
+                    key = save_key_prefix.get(i, f"val{i+1}")
+                # If save_key_prefix is a list, use index
+                elif isinstance(save_key_prefix, list) and i < len(save_key_prefix):
+                    key = save_key_prefix[i]
+                # If save_key_prefix is a string, use as prefix
+                elif isinstance(save_key_prefix, str):
+                    key = f"{save_key_prefix}{i+1}"
+                else:
+                    key = f"val{i+1}"
+                unit = seuil_unit_map[i] if isinstance(seuil_unit_map, list) and i < len(seuil_unit_map) else (seuil_unit_map.get(i, "") if isinstance(seuil_unit_map, dict) else "")
+                self.save_value(step_name_id, key, val_float, unit, min_value=min_values[i], max_value=max_values[i], valid=valid)
+
+        if valid:
+            return 0, "Mesure réussie."
+        else:
+            return 1, return_msg_fail
