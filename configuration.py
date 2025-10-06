@@ -170,12 +170,29 @@ class AppConfig:
             self.alim = None
         self.device_under_test_id = None
         
-    def save_value(self, step_name_id: int, key: str, value: float, unit: str = "", min_value: Optional[float] = None, max_value: Optional[float] = None, valid: int = 0):
+    def save_value(self, step_name_id: int, key: str, value, unit: str = "", min_value: Optional[float] = None, max_value: Optional[float] = None, valid: int = 0):
         """Save a key-value pair in the database."""
         if not self.db or not self.device_under_test_id:
             raise ValueError("Database or device under test ID is not initialized.")
-        id = self.db.create("skvp_float",
-                       {"step_name_id": step_name_id, "key": key, "val_float": value, "unit": unit, "min_configured": min_value, "max_configured": max_value, "valid": valid})
+        if isinstance(value, float):
+            table = "skvp_float"
+            col = "val_float"
+            data = {"step_name_id": step_name_id, "key": key, col: value, "unit": unit, "min_configured": min_value, "max_configured": max_value, "valid": valid}
+        elif isinstance(value, str):
+            table = "skvp_char"
+            col = "val_char"
+            data = {"step_name_id": step_name_id, "key": key, col: value}
+        elif isinstance(value, bytes):
+            table = "skvp_file"
+            col = "val_file"
+            data = {"step_name_id": step_name_id, "key": key, col: value}
+        elif isinstance(value, dict):
+            table = "skvp_json"
+            col = "val_json"
+            data = {"step_name_id": step_name_id, "key": key, col: value}
+        else:
+            return "Type de valeur non supporté."
+        id = self.db.create(table, data)
         return id
     
     def run_meas_on_patch(

@@ -139,12 +139,6 @@ def init_database_and_checks(log, config: configuration.AppConfig):
         {"device_under_test_id": config.device_under_test_id, "step_name": os.path.splitext(os.path.basename(__file__))[0]}
     )
 
-    config.db.create("skvp_char", {
-        "step_name_id": step_name_id,
-        "key": "VERSION",
-        "val_char": VERSION,
-    })
-
     # Create the data dictionary to be inserted into skvp_json
     data = {
         "device_under_test_id": config.device_under_test_id,
@@ -157,22 +151,9 @@ def init_database_and_checks(log, config: configuration.AppConfig):
         "parameters": parameters,               # already a list of dictionaries
     }
 
-    # Insert the data into skvp_json
-    config.db.create(
-        "skvp_json", {
-            "step_name_id": step_name_id,
-            "key": "data_used_for_test",
-            "val_json": json.dumps(data, indent=4, ensure_ascii=False, default=str),
-        }
-    )
-    
-    config.db.create(
-        "skvp_char", {
-            "step_name_id": step_name_id,
-            "key": "id_fichier_config",
-            "val_char": txt,
-        }
-    )
+    config.save_value(step_name_id, "VERSION", VERSION)
+    config.save_value(step_name_id, "data_used_for_test", json.dumps(data, indent=4, ensure_ascii=False, default=str))
+    config.save_value(step_name_id, "id_fichier_config", txt)
 
     return 0, step_name_id
 
@@ -233,13 +214,6 @@ def init_patch_easy_flow(log, config: configuration.AppConfig):
     if config.alim == None:
         return 1, "L'alimentation n'est pas initialisée ou connectée."
     try:
-        # config.alim.set_output(2, False)
-        # time.sleep(0.5)
-        # config.alim.set_output(2, True)
-        # time.sleep(0.1)  # Wait for dut to stabilize
-        # voltage2 = config.alim.read_output_voltage(2)
-        # current2 = config.alim.read_output_current(2)
-        # log(f"Alim CH2 : {voltage2}V, {current2}A", "blue")
         config.serial_patch_easy_flow = configuration.SerialPatchEasyFlow()
         if configuration.HASH_GIT == "DEBUG":
             log("En mode DEBUG, il faut bien penser à changer le port.", "cyan")
