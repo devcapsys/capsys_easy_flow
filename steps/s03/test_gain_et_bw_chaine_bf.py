@@ -31,7 +31,7 @@ def run_step(log, config: configuration.AppConfig):
         return_msg["infos"].append(f"config.serial_target_capsys n'est pas initialisé.")
         return 1, return_msg
 
-    cmd_map_target_capsys = ["set emetteur on\r", "set txmod 225\r", "set freq 450\r", "set freq 810\r"]
+    cmd_map_target_capsys = ["set emetteur on\r", "set txmod 225\r", "set txmod 450\r", "set txmod 810\r"]
     expected_prefix_target_capsys = "--> ok"
 
 
