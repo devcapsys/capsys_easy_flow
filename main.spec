@@ -13,8 +13,6 @@ a = Analysis(
     datas=[
         ('logo-big.png', '.'),
         ('steps', 'steps'),
-        ('modules/capsys_daq_manager', 'modules/capsys_daq_manager'),
-        ('modules/capsys_mcp23017', 'modules/capsys_mcp23017')
         ('modules/capsys_mysql_command', 'modules/capsys_mysql_command'),
         ('modules/capsys_pdf_report', 'modules/capsys_pdf_report'),
         ('modules/capsys_serial_instrument_manager', 'modules/capsys_serial_instrument_manager'),
@@ -37,11 +35,6 @@ a = Analysis(
         'reportlab.lib.colors',
         
         # Custom modules
-        'modules.capsys_daq_manager',
-        'modules.capsys_mcp23017',
-        'modules.capsys_mcp23017.modules.capsys_bitbangi2c',
-        'modules.capsys_mcp23017.modules.capsys_bitbangi2c.modules.capsys_daq_manager',
-        'modules.capsys_mcp23017.modules.capsys_daq_manager',
         'modules.capsys_mysql_command.capsys_mysql_command',
         'modules.capsys_pdf_report.capsys_pdf_report',
         'modules.capsys_pdf_report.modules.capsys_mysql_command.capsys_mysql_command',
@@ -53,7 +46,9 @@ a = Analysis(
         
         # Step modules (dynamically loaded)
         'steps.s01.initialisation',
-        # Add others steps
+        'steps.s02.test_des_seuils',
+        'steps.s03.test_gain_et_bw_chaine_bf',
+        'steps.s04.mesure_consommation_patch',
         'steps.zz.fin_du_test',
         'unittest.mock',
     ] + mysql_hiddenimports + reportlab_hiddenimports,
