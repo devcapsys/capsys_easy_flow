@@ -61,9 +61,9 @@ def run_step(log, config: configuration.AppConfig):
         all_ok = 1
         log(f"Exécution de l'étape {step_name} (tentative {attempt}/{config.max_retries})", "yellow")
 
-        config.serial_target_capsys.send_command(cmd_map_target_capsys[0], expected_prefix_target_capsys, timeout=3)
+        log(f"Envoie de la commande \"{cmd_map_target_capsys[0]}\" : {config.serial_target_capsys.send_command(cmd_map_target_capsys[0], expected_prefix_target_capsys, timeout=5)}", "blue")
         for i in range(3):
-            config.serial_target_capsys.send_command(cmd_map_target_capsys[i+1], expected_prefix_target_capsys, timeout=3)
+            log(f"Envoie de la commande \"{cmd_map_target_capsys[i+1]}\" : {config.serial_target_capsys.send_command(cmd_map_target_capsys[i+1], expected_prefix_target_capsys, timeout=5)}", "blue")
             status, msg = config.run_meas_on_patch(
                 log, step_name_id, min_map_groups[i], max_map_groups[i], cmd, expected_prefix, save_prefix_map_groups[i], timeout=timeout, replace_map=replace_map
             )
