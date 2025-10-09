@@ -35,10 +35,7 @@ def run_step(log, config: configuration.AppConfig):
     current_max = config.configItems.consumption.maximum
     name = config.configItems.consumption.key
     unit = "A"
-    config.multimeter_current.send_command("RANGE:ACI 1\n")
-    config.multimeter_current.send_command("RATE F\n")
     current = float(config.multimeter_current.meas())
-    config.multimeter_current.send_command("RANGE:ACI 4\n")
     log(f"Courant mesuré : {current}{unit}, min={current_min}{unit}, max={current_max}{unit}", "blue")
     id = config.save_value(step_name_id, name, current, unit, min_value=current_min, max_value=current_max)
     if current > float(current_max) or current < float(current_min):

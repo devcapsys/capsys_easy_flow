@@ -171,7 +171,7 @@ def init_multimeter_current(log, config: configuration.AppConfig):
             log(multimeter.identification(), "blue")
             multimeter.reset()
             multimeter.conf_curr_dc()
-            multimeter.send_command("RANGE:ACI 4\n")
+            multimeter.send_command("RANGE:DCI 3\n")
             multimeter.send_command("RATE F\n")
         else:
             return 1, "Impossible de se connecter au multimètre MP730424."
