@@ -92,8 +92,8 @@ class ConfigItems:
             port = "",
             min_map = [],
             max_map = [],
-            minimum = None,
-            maximum = None,
+            minimum = 0.0,
+            maximum = 0.0,
         ):
             """Initialize a ConfigItem with optional parameters for test configuration."""
             self.key = key
