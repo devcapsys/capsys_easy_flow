@@ -27,6 +27,22 @@ class SerialPatchEasyFlow(SerialInstrumentManager):
         self._debug_log("PatchManager initialized")
 
     def get_valid(self, sn=None) -> bool:
+        idn = self.send_command("help\r", timeout=1) # Example : help = "Command disp : prod param stat all"
+        if not idn:
+            raise RuntimeError("Failed to get valid IDN response")
+        if idn.startswith("Command disp :\r prod\r param\r"):
+            self._debug_log(f"Device IDN: {idn}")
+            return True
+        else:
+            raise RuntimeError(f"Invalid device IDN: {idn}")
+        
+class SerialTargetCapsys(SerialInstrumentManager):
+    def __init__(self, port=None, baudrate=115200, timeout=0.3, debug=False):
+        SerialInstrumentManager.__init__(self, port, baudrate, timeout, debug)
+        self._debug_log("TargetCapsys initialized")
+
+    def get_valid(self, sn=None) -> bool:
+        # self.send_command("\r", timeout=1)
         # idn = self.send_command("help\r", timeout=1) # Example : help = "Command disp : prod param stat all"
         # if not idn:
         #     raise RuntimeError("Failed to get valid IDN response")
@@ -36,22 +52,6 @@ class SerialPatchEasyFlow(SerialInstrumentManager):
         # else:
         #     raise RuntimeError(f"Invalid device IDN: {idn}")
         return True
-        
-class SerialTargetCapsys(SerialInstrumentManager):
-    def __init__(self, port=None, baudrate=115200, timeout=0.3, debug=False):
-        SerialInstrumentManager.__init__(self, port, baudrate, timeout, debug)
-        self._debug_log("TargetCapsys initialized")
-
-    def get_valid(self, sn=None) -> bool:
-        self.send_command("\r", timeout=1)
-        idn = self.send_command("help\r", timeout=1) # Example : help = "Command disp : prod param stat all"
-        if not idn:
-            raise RuntimeError("Failed to get valid IDN response")
-        if idn.startswith("Command disp :\r prod\r param\r"):
-            self._debug_log(f"Device IDN: {idn}")
-            return True
-        else:
-            raise RuntimeError(f"Invalid device IDN: {idn}")
         
 class ConfigItems:
     """Container for all configuration items used in the test sequence."""

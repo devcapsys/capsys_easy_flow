@@ -287,6 +287,22 @@ def run_step(log, config: configuration.AppConfig):
         log("L'alimentation est déjà initialisée.", "blue")
 
     try:
+        target_capsys_is_open = (config.serial_target_capsys is not None and getattr(getattr(config.serial_target_capsys, 'ser', None), 'is_open', False))
+    except (AttributeError, TypeError):
+        target_capsys_is_open = False
+    if not target_capsys_is_open:
+        status, message = -1, "Erreur inconnue lors de l'initialisation de la target Capsys."
+        status, message = init_target_capsys(log, config)
+        log(message, "blue")
+        if status != 0:
+            all_ok = 0
+            if config.serial_target_capsys is not None:
+                config.serial_target_capsys.close()
+            config.serial_target_capsys = None
+            return_msg["infos"].append(f"{message}")
+            return status, return_msg
+
+    try:
         patch_is_open = (config.serial_patch_easy_flow is not None and getattr(getattr(config.serial_patch_easy_flow, 'ser', None), 'is_open', False))
     except (AttributeError, TypeError):
         patch_is_open = False
@@ -302,22 +318,6 @@ def run_step(log, config: configuration.AppConfig):
             return status, return_msg
     else:
         log("Le patch est déjà initialisé.", "blue")
-        
-    try:
-        target_capsys_is_open = (config.serial_target_capsys is not None and getattr(getattr(config.serial_target_capsys, 'ser', None), 'is_open', False))
-    except (AttributeError, TypeError):
-        target_capsys_is_open = False
-    if not target_capsys_is_open:
-        status, message = -1, "Erreur inconnue lors de l'initialisation de la target Capsys."
-        status, message = init_target_capsys(log, config)
-        log(message, "blue")
-        if status != 0:
-            all_ok = 0
-            if config.serial_target_capsys is not None:
-                config.serial_target_capsys.close()
-            config.serial_target_capsys = None
-            return_msg["infos"].append(f"{message}")
-            return status, return_msg
 
     if all_ok == 0:
         config.multimeter_current = None
