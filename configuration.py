@@ -30,7 +30,7 @@ class SerialPatchEasyFlow(SerialInstrumentManager):
         idn = self.send_command("IDN*\r", timeout=1) # Example : help = "Command disp : prod param stat all"
         if not idn:
             raise RuntimeError("Failed to get valid IDN response")
-        if idn.startswith("Outil de test antenne patch easy flow\r"):
+        if idn.startswith("Outil de test antenne patch easy flow"):
             self._debug_log(f"Device IDN: {idn}")
             return True
         else:
@@ -46,7 +46,7 @@ class SerialTargetCapsys(SerialInstrumentManager):
         idn = self.send_command("IDN*\r", timeout=1) # Example : help = "Command disp : prod param stat all"
         if not idn:
             raise RuntimeError("Failed to get valid IDN response")
-        if idn.startswith("Emetteur easy flow\r"):
+        if idn.startswith("Emetteur easy flow"):
             self._debug_log(f"Device IDN: {idn}")
             return True
         else:
