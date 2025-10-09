@@ -46,7 +46,7 @@ class SerialTargetCapsys(SerialInstrumentManager):
         idn = self.send_command("IDN*\r", timeout=1) # Example : help = "Command disp : prod param stat all"
         if not idn:
             raise RuntimeError("Failed to get valid IDN response")
-        if idn.startswith("Emetteur IH\r"):
+        if idn.startswith("Emetteur easy flow\r"):
             self._debug_log(f"Device IDN: {idn}")
             return True
         else:
