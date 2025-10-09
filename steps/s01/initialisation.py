@@ -327,6 +327,12 @@ def run_step(log, config: configuration.AppConfig):
         return_msg["infos"].append("Erreur lors de l'initialisation des instruments.")
         return 1, return_msg
     
+    if config.serial_patch_easy_flow is None:
+        return_msg["infos"].append(f"{step_name} : le patch n'est pas initialisé.")
+        return 1, return_msg
+    log(f"Envoie de la commande \"test power on\" : {config.serial_patch_easy_flow.send_command('test power on\r', expected_response='ok', timeout=15)}", "blue")
+
+
     return_msg["infos"].append(f"OK")
     return 0, return_msg
 

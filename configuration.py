@@ -27,10 +27,10 @@ class SerialPatchEasyFlow(SerialInstrumentManager):
         self._debug_log("PatchManager initialized")
 
     def get_valid(self, sn=None) -> bool:
-        idn = self.send_command("help\r", timeout=1) # Example : help = "Command disp : prod param stat all"
+        idn = self.send_command("IDN*\r", timeout=1) # Example : help = "Command disp : prod param stat all"
         if not idn:
             raise RuntimeError("Failed to get valid IDN response")
-        if idn.startswith("Command disp :\r prod\r param\r"):
+        if idn.startswith("Outil de test antenne patch easy flow\r"):
             self._debug_log(f"Device IDN: {idn}")
             return True
         else:
