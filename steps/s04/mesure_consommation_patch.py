@@ -26,40 +26,28 @@ def run_step(log, config: configuration.AppConfig):
         }
     )
 
-    # Paramètres spécifiques seuils
-    min = config.configItems.consumption.minimum
-    max = config.configItems.test_seuils.max_map
-    cmd = "test seuil 50 100 150\r"
-    expected_prefix = "--> ok : "
-    replace_map = [("--> ok : ", ""), ("- ", "")]
-    save_prefix = "TEST_SEUILS_"
-    units_map = ["dB", "dB", "dB"]
-    timeout = 2
+    if config.multimeter_current is None:
+        return_msg["infos"].append(f"{step_name} : le multimètre de courant n'est pas initialisé.")
+        return 1, return_msg
+    
+    # Verify current limits
+    current_min = config.configItems.consumption.minimum
+    current_max = config.configItems.consumption.maximum
+    name = config.configItems.consumption.key
+    unit = "A"
+    config.multimeter_current.send_command("RANGE:ACI 1\n")
+    config.multimeter_current.send_command("RATE F\n")
+    current = float(config.multimeter_current.meas())
+    config.multimeter_current.send_command("RANGE:ACI 4\n")
+    log(f"Courant mesuré : {current}{unit}, min={current_min}{unit}, max={current_max}{unit}", "blue")
+    id = config.save_value(step_name_id, name, current, unit, min_value=current_min, max_value=current_max)
+    if current > float(current_max) or current < float(current_min):
+        return_msg["infos"].append(f"Courant mesuré {current}{unit} hors des limites ({current_min}{unit} - {current_max}{unit}).")
+        return 1, return_msg
+    config.db.update_by_id("skvp_float", id, {"valid": 1})
 
-    # Retry logic for the command
-    for attempt in range(1, config.max_retries + 1):
-        log(f"Exécution de l'étape test des seuils (tentative {attempt}/{config.max_retries})", "yellow")
-
-        status, msg = config.run_meas_on_patch(
-            log, step_name_id, min, max, cmd, expected_prefix, save_prefix, units_map, timeout, replace_map
-        )
-        if status != 0:
-            if attempt < config.max_retries:
-                log(f"Réessaie de \"{cmd}\"... (tentative {attempt + 1}/{config.max_retries})", "yellow")
-                time.sleep(1)
-                continue
-            else:
-                if isinstance(msg, list):
-                    for item in msg:
-                        return_msg["infos"].append(f"{item}")
-                else:
-                    return_msg["infos"].append(f"{msg}")
-                return status, return_msg
-        else:
-            return_msg["infos"].append(f"OK")
-            return 0, return_msg
-    return_msg["infos"].append(f"NOK")
-    return 1, return_msg
+    return_msg["infos"].append(f"OK")
+    return 0, return_msg
 
 
 if __name__ == "__main__":
