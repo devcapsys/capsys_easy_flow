@@ -301,7 +301,7 @@ class MainWindow(QWidget):
 
         title = QLabel("Étapes de test")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setStyleSheet("font-weight: bold; font-size: 18px;")
+        title.setStyleSheet("font-weight: bold; font-size: 24px;")
         main_layout.addWidget(title)
 
         # Create a horizontal layout for the steps
@@ -309,42 +309,47 @@ class MainWindow(QWidget):
         for i, step in enumerate(self.steps):
             row = QHBoxLayout()
             index_label = QLabel(str(i + 1))
-            index_label.setFixedWidth(20)
+            index_label.setFixedWidth(30)
+            index_label.setStyleSheet("font-size: 14px; font-weight: bold;")
             row.addWidget(index_label)
 
             step_str: str = str(step)  # Ensure step is treated as string
             label_step_name = QLabel(step_str.replace('_', ' ').capitalize())
-            label_step_name.setStyleSheet("color: white;")
+            label_step_name.setStyleSheet("color: white; font-size: 14px;")
             row.addWidget(label_step_name)
 
             label_status = QLabel("⏳")
             label_status.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            label_status.setFixedWidth(30)
+            label_status.setFixedWidth(40)
+            label_status.setStyleSheet("font-size: 16px;")
             row.addWidget(label_status)
 
             # Add a skip checkbox for each step (except for initialisation and fin_du_test)
             if step.lower() not in ["initialisation", "fin_du_test"]:
                 skip_checkbox = QCheckBox("Sauter")
-                skip_checkbox.setFixedWidth(60)
+                skip_checkbox.setFixedWidth(80)
+                skip_checkbox.setStyleSheet("font-size: 11px;")
                 row.addWidget(skip_checkbox)
                 self.skip_checkboxes.append(skip_checkbox)
             else:
                 # Add a placeholder widget to maintain layout consistency
                 placeholder = QLabel("")
-                placeholder.setFixedWidth(60)
+                placeholder.setFixedWidth(80)
                 row.addWidget(placeholder)
                 self.skip_checkboxes.append(None)  # Add None to maintain index alignment
 
             # Add an info button for each step
             info_button = QPushButton("ℹ️")
             info_button.clicked.connect(lambda checked, idx=i: self.show_step_info(idx))
-            info_button.setFixedWidth(40)
+            info_button.setFixedWidth(50)
+            info_button.setStyleSheet("font-size: 14px;")
             row.addWidget(info_button)
 
             # Add a message button for each step
             message_button = QPushButton("❗")
             message_button.clicked.connect(lambda checked, idx=i: self.show_step_message(idx))
-            message_button.setFixedWidth(40)
+            message_button.setFixedWidth(50)
+            message_button.setStyleSheet("font-size: 14px;")
             row.addWidget(message_button)
             # Initialize the message as empty
             self.step_messages[i] = "Lancer un test pour avoir des informations"
@@ -356,9 +361,10 @@ class MainWindow(QWidget):
         # Create a QTextEdit for the log area
         self.log_label = QLabel("LOG")
         self.log_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.log_label.setStyleSheet("font-weight: bold; font-size: 18px;")
+        self.log_label.setStyleSheet("font-weight: bold; font-size: 24px;")
         self.log_area = QTextEdit()
         self.log_area.setReadOnly(True)
+        self.log_area.setStyleSheet("font-size: 12px; font-family: 'Consolas', monospace;")
         main_layout.addWidget(self.log_label)
         self.log_area.setMinimumHeight(300)
         main_layout.addWidget(self.log_area, stretch=2)
@@ -368,29 +374,35 @@ class MainWindow(QWidget):
         # Checkbox for PDF report generation
         self.generate_report_checkbox = QCheckBox("Générer le rapport PDF")
         self.generate_report_checkbox.setChecked(False)  # Par défaut décochée
+        self.generate_report_checkbox.setStyleSheet("font-size: 12px;")
         self.button_layout.addWidget(self.generate_report_checkbox)
         # Start button
         self.start_button = QPushButton("Démarrer le test")
         self.start_button.clicked.connect(self.start_test)
+        self.start_button.setStyleSheet("font-size: 14px; padding: 8px;")
         self.button_layout.addWidget(self.start_button)
         # Stop button
         self.stop_button = QPushButton("Stop")
         self.stop_button.clicked.connect(self.stop_test)
+        self.stop_button.setStyleSheet("font-size: 14px; padding: 8px;")
         self.button_layout.addWidget(self.stop_button)
         # Toggle simple/complete mode
         # Changed to self.toggle_mode_button
         self.toggle_mode_button = QPushButton("Mode Simple")
         self.toggle_mode_button.setCheckable(True)
         self.toggle_mode_button.clicked.connect(self.toggle_simple_mode)
+        self.toggle_mode_button.setStyleSheet("font-size: 12px; padding: 6px;")
         self.button_layout.addWidget(self.toggle_mode_button)
         self.toggle_mode_button.setChecked(False)  # Start in complete mode by default
         # Info button
         self.info_button2 = QPushButton("ℹ️")
         self.info_button2.clicked.connect(self.show_info)
+        self.info_button2.setStyleSheet("font-size: 14px; padding: 6px;")
         self.button_layout.addWidget(self.info_button2)
         # Quit button
         self.quit_button = QPushButton("Quitter")
         self.quit_button.clicked.connect(self.close)
+        self.quit_button.setStyleSheet("font-size: 14px; padding: 8px;")
         self.button_layout.addWidget(self.quit_button)
         # Add the button layout to the main layout
         main_layout.addLayout(self.button_layout)
@@ -612,7 +624,7 @@ class MainWindow(QWidget):
     def reset_steps(self):
         """Reset the step status indicators in the UI to their initial state."""
         for label_step_name, label_status in self.steps_widgets:
-            label_step_name.setStyleSheet("color: white;")
+            label_step_name.setStyleSheet("color: white; font-size: 14px;")
             label_status.setText("⏳")
 
     def update_step_status(self, idx, status, success, message=""):
@@ -620,13 +632,13 @@ class MainWindow(QWidget):
         label_step_name, label_status = self.steps_widgets[idx]
         label_status.setText(status)
         if success == 0:
-            label_step_name.setStyleSheet("color: green;")
+            label_step_name.setStyleSheet("color: green; font-size: 14px;")
         elif "Étape en cours" in message:
-            label_step_name.setStyleSheet("color: yellow;")
+            label_step_name.setStyleSheet("color: yellow; font-size: 14px;")
         elif "Étape sautée par l'utilisateur" in message:
-            label_step_name.setStyleSheet("color: orange;")
+            label_step_name.setStyleSheet("color: orange; font-size: 14px;")
         else:
-            label_step_name.setStyleSheet("color: red;")
+            label_step_name.setStyleSheet("color: red; font-size: 14px;")
 
         # Store the step message
         self.step_messages[idx] = message
@@ -676,7 +688,7 @@ class MainWindow(QWidget):
             message_format = QTextCharFormat()
             message_format.setForeground(QColor(dict_color))
             message_format.setFontFamily("Consolas")
-            message_format.setFontPointSize(10)
+            message_format.setFontPointSize(12)
             for v in obj["infos"]:
                 cursor.insertText(f"{v}\n", message_format)
             plain_message = f"[{now}] " + "\n".join([str(v) for v in obj["infos"]]) + "\n"
@@ -684,7 +696,7 @@ class MainWindow(QWidget):
             message_format = QTextCharFormat()
             message_format.setForeground(QColor(dict_color))
             message_format.setFontFamily("Consolas")
-            message_format.setFontPointSize(10)
+            message_format.setFontPointSize(12)
             for k, v in obj.items():
                 cursor.insertText(f"{k} : {v}\n", message_format)
             plain_message = f"[{now}] " + "\n".join([f"{k} : {v}" for k, v in obj.items()]) + "\n"
@@ -692,6 +704,7 @@ class MainWindow(QWidget):
             message_format = QTextCharFormat()
             message_color = color_map.get(color, "#ffffff")
             message_format.setForeground(QColor(message_color))
+            message_format.setFontPointSize(12)
             cursor.insertText(f"{message}\n", message_format)
             plain_message = f"[{now}] {message}\n"
 
