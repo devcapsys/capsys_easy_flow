@@ -39,7 +39,7 @@ def run_step(log, config: configuration.AppConfig):
     # Retry logic for the command
     for attempt in range(1, config.max_retries + 1):
         log(f"Exécution de l'étape test des seuils (tentative {attempt}/{config.max_retries})", "yellow")
-
+        time.sleep(2)
         status, msg = config.run_meas_on_patch(
             log, step_name_id, min, max, cmd, expected_prefix, save_prefix, units_map, timeout, replace_map
         )
