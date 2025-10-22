@@ -25,7 +25,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 echo.
 echo Lancement de PyInstaller...
-pyinstaller main.spec
+python -m PyInstaller main.spec
 
 if %ERRORLEVEL% NEQ 0 (
     echo.
